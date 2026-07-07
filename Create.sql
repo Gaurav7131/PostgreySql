@@ -111,7 +111,7 @@ select * from worker where name IN ('Team cook');
 --OR-at least one must be true
 select * from worker where salary >= 10000 OR salary <= 100000;
 
---Like operator:string matcher
+--Like operator:string matcher return only given str as it is strictly
 select * from worker where name like 'Ale%';
 
 --between-RANGE
@@ -126,5 +126,11 @@ SELECT * from worker WHERE name like 'Mich%' and salary >= 1000;
 
 select DISTINCT name from worker where name like 'Mich%';
 
+select name from worker where name LIKE '_ich%';
+--ilike-return uppercase,lowercase,mixed
+select name from worker where name ilike 'mic%';
+
 --not equals
 select * from worker where name like 'Te%' AND salary <> 10000;
+
+SELECT * from worker where ROLE IS NOT NULL;
