@@ -134,3 +134,13 @@ select name from worker where name ilike 'mic%';
 select * from worker where name like 'Te%' AND salary <> 10000;
 
 SELECT * from worker where ROLE IS NOT NULL;
+--between
+select name from worker where salary between 10000 AND 30000;
+--not between
+select DISTINCT
+    name
+from worker
+where
+    salary not BETWEEN 10000 and 20000;
+
+select * from worker;
