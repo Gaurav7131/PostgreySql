@@ -7,9 +7,9 @@ create table employee1 (
 );
 
 create table employee2 (
-    name VARCHAR(10) not NULL,
-    sirname VARCHAR(10) not null,
-    emp_id serial not NULL,
+    name VARCHAR(10),
+    sirname VARCHAR(10),
+    emp_id serial,
     experience date,
     salary money
 );
@@ -146,3 +146,173 @@ SELECT name, sirname
 from employee2;
 
 SELECT emp_id from employee1 except SELECT emp_id from employee2;
+
+--Inner query(subquery)
+select emp_id, name, sirname, salary
+from employee1
+where
+    salary > (
+        SELECT min(salary)
+        from employee1
+    );
+
+select emp_id, name, experience
+from employee2
+where
+    experience < (
+        select max(experience)
+        from employee2
+    );
+
+select emp_id, name, experience, salary
+from employee1
+where
+    experience IN (
+        select experience
+        from employee1
+    );
+
+SELECT emp_id, name, salary
+from employee2
+where
+    salary BETWEEN (
+        select min(salary) --lower inner query
+        from employee2
+    ) AND (
+        SELECT max(salary) --upper inner query
+        from employee2
+    );
+
+select name, experience
+from employee1
+where
+    experience between (
+        select min(experience) --lower boudary
+        from employee1
+    ) AND (
+        select max(experience) --upper boudary
+        from employee1
+    );
+
+alter table employee1 add column project text;
+
+insert into employee1 (project) values ('java');
+
+select project from employee1;
+
+--exists(1 row ignore rest)
+SELECT name, sirname, emp_id
+FROM employee1 e
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM project p
+        WHERE
+            p.emp_id = e.emp_id
+    );
+
+--any(1 column mln rows but have one column in any)
+select *
+from employee2
+where
+    salary < ANY ( --salary is less than emp_id1
+        select salary
+        from employee2
+        where
+            emp_id = 1
+    );
+
+alter TABLE employee2 ADD column age BIGINT NOT NULL;
+
+insert into
+    employee2
+VALUES (
+        'rj',
+        'raghav',
+        006,
+        '2012-02-06',
+        60000.00,
+        33
+    );
+
+insert into
+    employee2
+VALUES (
+        'Sequel',
+        'F0rd',
+        008,
+        '2012-02-06',
+        60000.00,
+        37
+    );
+
+select age from employee2;
+--ALL(And like work every value must be true to specify the cond met)
+select emp_id, name, salary, age
+from employee2
+where
+    age <= ALL (
+        select max(age)
+        from employee2
+        where
+            emp_id = 6
+    );
+
+select emp_id, name, age
+from employee2
+where
+    age >= all (
+        select avg(age)
+        from employee2
+    );
+
+--update(set)
+update employee1 SET name = 'Xavior' where name = 'Team';
+
+update employee1
+set
+    name = 'Team'
+where
+    name = 'Xavior'
+    and sirname = 'Cook';
+
+update employee1
+set
+    sirname = 'David'
+where
+    sirname = 'Smith';
+
+select name, sirname from employee1;
+
+update employee2 set age = 34 where age = 33 returning *;
+
+update employee2 set emp_id = 007 where emp_id = 008 RETURNING *;
+
+select emp_id from employee2;
+
+--Upsert(update+insert)
+ALTER table employee2 add PRIMARY KEY (emp_id);
+
+insert into
+    employee2 (emp_id, name, sirname)
+VALUES ('007', 'Elon', 'Musk')
+ON CONFLICT (emp_id) DO
+UPDATE
+set
+    name = EXCLUDED.name,
+    sirname = EXCLUDED.sirname;
+
+ALTER table employee1 add PRIMARY KEY (emp_id);
+
+insert into
+    employee1 (emp_id, name, sirname)
+VALUES ('007', 'Radhe', 'Shyam')
+ON CONFLICT (emp_id) DO
+UPDATE
+set
+    name = excluded.name,
+    sirname = excluded.sirname;
+
+insert into
+    employee1 (age, name)
+VALUES (29, 'Raj') NO conflict (age) DO NOTHING;
