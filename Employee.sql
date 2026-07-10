@@ -316,3 +316,90 @@ set
 insert into
     employee1 (age, name)
 VALUES (29, 'Raj') NO conflict (age) DO NOTHING;
+--if-then direct logic using Case
+select
+    emp_id,
+    salary,
+    CASE
+        WHEN age > 35 THEN 'high'
+        when age <= 34 THEN 'Medium'
+        ELSE 'Low'
+    END as salary_categories
+from employee2;
+
+select age from employee2;
+--if-then condn logic in pg/pgslq
+CREATE OR REPLACE FUNCTION categorize_score(score INT)
+RETURNS TEXT AS $$
+DECLARE
+    category TEXT;
+BEGIN
+    IF score >= 90 THEN
+        category := 'A';
+    ELSIF score >= 80 THEN
+        category := 'B';
+    ELSIF score >= 70 THEN
+        category := 'C';
+    ELSE
+        category := 'D';
+    END IF;
+    RETURN category;
+END;
+$$ LANGUAGE plpgsql;
+
+select categorize_score (90);
+--example 2
+CREATE OR replace FUNCTION match_score(score INT)
+RETURNS  text as $$
+DECLARE
+RESULT text;
+BEGIN
+IF score>=90 THEN
+RESULT:='Win';
+ELSIF score>=80 THEN
+RESULT:='Probability';
+ELSE
+RESULT:='Lost';
+END IF;
+RETURN RESULT;
+END;
+$$LANGUAGE PLPGSQL;
+
+select match_score(200);
+
+--example 2 
+CREATE OR REPLACE FUNCTION vote_eligible(age INT)
+RETURNS text AS '
+DECLARE
+    RESULT text;
+BEGIN
+    IF age >= 18 THEN
+        RESULT := ''Eligible to vote'';
+    ELSIF age < 18 THEN
+        RESULT := ''Not eligible to vote'';
+    ELSE
+        RESULT := ''Wait for age'';
+    END IF;
+    
+    RETURN RESULT;
+END;
+' LANGUAGE plpgsql;
+
+SELECT vote_eligible(25);
+--Label(loop)
+
+do $$
+declare
+  n integer:= 6;
+
+cnt integer := 1;
+
+begin
+loop  
+ exit when cnt = n ;
+ raise notice '%', cnt;  
+ cnt := cnt + 1 ;  
+end loop;  
+end;
+
+$$;
