@@ -403,3 +403,235 @@ end loop;
 end;
 
 $$;
+
+DO $$
+DECLARE
+  cnt INTEGER := 1;  
+BEGIN
+  LOOP  
+    -- Exit the loop when cnt reaches 8
+    EXIT WHEN cnt = 8;
+    RAISE NOTICE 'Counter: %', cnt;  
+    cnt := cnt + 1;  
+  END LOOP;  
+END $$;
+
+DO $$
+DECLARE
+cnt integer:=0;
+BEGIN
+LOOP
+exit when cnt>10;
+cnt:=cnt+1;
+
+--skipped the curent iteration when cnt is odd
+continue when mod(cnt,2)=1;
+raise notice'Even %',cnt;
+end loop;
+end;$$;
+
+--
+do $$
+BEGIN
+<<outer_loop>>
+for i in 1..3 LOOP
+<<inner_loop>>
+for j in 1..3 LOOP
+--if j=2 skipped
+continue inner_loop when j=2;
+raise notice 'i:%,j:%',i,j;
+end loop;
+end loop;
+end;$$;
+
+--adding primary key
+CREATE TABLE books (
+    book_id INTEGER PRIMARY KEY,
+    title TEXT,
+    price INTEGER
+);
+
+INSERT INTO
+    books (book_id, title, price)
+VALUES ('101', 'Jobs', '2000'),
+    ('102', 'Geeta', '250'),
+    ('103', 'Ramayana', '354'),
+    ('104', 'Vedas', '268');
+
+SELECT * FROM books;
+--ading primary key to existing table
+CREATE TABLE vendors (name VARCHAR(255));
+
+INSERT INTO
+    vendors (NAME)
+VALUES ('Microsoft'),
+    ('IBM'),
+    ('Apple'),
+    ('Samsung');
+
+SELECT * FROM vendors;
+--autoincrementing by serial or bigserial data type
+alter table vendors add column vendor_id SERIAL primary key;
+--casting
+--select cast(vendor_id as integer) from vendors;
+
+select vendor_id, name from vendors;
+
+--foreign key(refential integrity)
+--parent table:Course("Primary key")
+create table courses (
+    course_id SERIAL PRIMARY key,
+    course_name VARCHAR(50)
+);
+
+insert into courses (course_id) VALUES (33);
+
+--Child table(Student:Foreign key)
+create table students (
+    student_id SERIAL PRIMARY key,
+    student_name VARCHAR(20),
+    course_id INT,
+    CONSTRAINT fk_course FOREIGN KEY (course_id) REFERENCES courses (course_id)
+);
+--on delete cascade
+create table students1 (
+    student_id SERIAL PRIMARY key,
+    student_name VARCHAR(20),
+    course_id INT,
+    CONSTRAINT fk_course FOREIGN KEY (course_id) REFERENCES courses (course_id) on delete CASCADE
+);
+
+delete from courses where course_id = 33;
+
+--on dletete set null
+create table students2 (
+    student_id SERIAL PRIMARY key,
+    student_name VARCHAR(20),
+    course_id INT,
+    CONSTRAINT fk_course FOREIGN KEY (course_id) REFERENCES courses (course_id) on delete set NULL
+);
+
+delete from courses where course_id = 33;
+
+select course_id, course_name from courses;
+
+--on update cascase
+create table students4 (
+    student_id SERIAL PRIMARY key,
+    student_name VARCHAR(20),
+    course_id INT,
+    CONSTRAINT fk_course FOREIGN KEY (course_id) REFERENCES courses (course_id) on update CASCADE
+);
+
+update courses set course_id = 3 where course_id = 1;
+
+select * from courses;
+
+--creatre
+create table departments (
+    dept_id SERIAL PRIMARY key,
+    dept_name VARCHAR(20)
+);
+
+insert into departments (dept_name) VALUES ('IT');
+
+insert into departments (dept_name) VALUES ('Sales');
+
+insert into departments (dept_name) VALUES ('EXTC');
+
+insert into departments (dept_id) VALUES (20);
+
+--child table
+create table employee7 (
+    emp_id SERIAL PRIMARY KEY,
+    emp_name VARCHAR(10),
+    dept_id INT,
+    CONSTRAINT fk_dept FOREIGN KEY (dept_id) REFERENCES departments (dept_id)
+);
+
+SELECT * from departments;
+
+select * from employee7;
+--on del cacse
+create table employee8 (
+    emp_id SERIAL PRIMARY KEY,
+    emp_name VARCHAR(10),
+    dept_id INT,
+    constraint fk_dept FOREIGN KEY (dept_id) REFERENCES departments (dept_id) on delete CASCADE
+);
+
+delete from departments where dept_id = 20;
+
+select dept_id from departments;
+
+--on delete set null
+create table employee9 (
+    emp_id SERIAL PRIMARY KEY,
+    emp_name VARCHAR(10),
+    dept_id INT,
+    constraint fk_dept FOREIGN KEY (dept_id) REFERENCES departments (dept_id) on delete set null
+);
+
+delete from departments where dept_id = 20;
+
+select dept_id from departments;
+
+create table employee9 (
+    emp_id SERIAL PRIMARY KEY,
+    emp_name VARCHAR(10),
+    dept_id INT,
+    constraint fk_dept FOREIGN KEY (dept_id) REFERENCES departments (dept_id) on update CASCADE
+);
+
+update departments set dept_id = 34 where dept_id = 39;
+
+select dept_id from departments;
+
+--check contriants
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name TEXT NOT NULL,
+    price numeric check (price > 0),
+    discount numeric check (discount < price)
+);
+
+--add contraints to existing table
+alter table products add constraint price check (price >= 100);
+
+insert into
+    products
+VALUES (
+        '1',
+        'Zebronicsa jukebox',
+        1000,
+        30
+    );
+
+alter table products add constraint discount check (discount < 60);
+
+select * from products;
+
+create table employee12 (
+    emp_id SERIAL PRIMARY KEY,
+    emp_name VARCHAR(10),
+    dept_id INT,
+    salary BIGINT check (salary > 100000)
+);
+
+alter table employee12 add constraint salary check (salary > 2000);
+
+alter table employee12 add column age INTEGER;
+
+insert into employee12 (age) values (19);
+
+alter table employee12 add constraint age check (age = 19);
+
+--unique
+create table books1 (
+    book_name TEXT UNIQUE,
+    author_name TEXT not NULL,
+    price integer,
+    published_date date
+);
+
+select book_name from books1;
