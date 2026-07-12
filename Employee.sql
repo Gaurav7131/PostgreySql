@@ -635,3 +635,106 @@ create table books1 (
 );
 
 select book_name from books1;
+
+--not null constriant(null value not allowed)
+CREATE TABLE invoice (
+    product_id serial PRIMARY KEY,
+    qty numeric NOT NULL check (qty > 0),
+    discount numeric not NULL check (discount > 0)
+);
+
+alter table invoice add constraint discount check (discount >= 0);
+
+alter table invoice add constraint qty check (qty >= 0);
+
+insert into invoice (qty, discount) VALUES (2, 20);
+--null values not allowed bcoz we cant voilate not null constraint
+insert into
+    invoice (product_id, qty, discount)
+VALUES (001, NULL, 30);
+--violation of null becox pg considered itas unknown,missing state
+insert into
+    invoice (product_id, qty, discount)
+VALUES (002, 30, NULL);
+--empty vs null trap:allow 0 and " "(empty string with 0 length) as 0 is valid no while null is unknown no,pk automatically incremented through Serial
+insert into invoice (qty, discount) VALUES (" ", 0);
+--violation of constriant
+insert into invoice (qty, discount) VALUES (0, " ");
+--look, 0 considered as a valid value & empty str with "0" length is valid value but we have managed datatype of qty & discount
+insert into
+    invoice (product_id, qty, discount)
+VALUES (004, " ", 0);
+
+select * from invoice;
+
+--ex2
+CREATE TABLE invoice3 (
+    product_id serial PRIMARY KEY,
+    qty numeric NOT NULL check (qty > 0),
+    discount numeric not NULL check (discount > 0)
+);
+
+insert into invoice3 (qty, discount) VALUES (1, 9);
+
+insert into invoice3 (qty, discount) VALUES (0, " ");
+
+select * from invoice2;
+
+drop table if EXISTS invoice3;
+
+--ex3
+CREATE TABLE invoice3 (
+    product_id serial PRIMARY KEY,
+    qty numeric NOT NULL check (qty >= 0),
+    discount numeric
+);
+
+insert into invoice3 (qty, discount) VALUES (1, NULL);
+
+insert into invoice3 (qty, discount) VALUES (' ', 0);
+
+CREATE TABLE invoice4 (
+    product_id serial PRIMARY KEY,
+    qty NUMERIC NOT NULL check (qty >= 0),
+    discount numeric
+);
+
+insert into invoice4 (qty, discount) VALUES (1, null);
+--add  string and 0 as a values
+insert into invoice4 (qty, discount) VALUES (0, ' 2 ');
+
+select * from invoice4;
+
+--roles & permissions
+select rolname from pg_roles;
+
+--valid until timestamp:2026-07-12
+CREATE ROLE contractor LOGIN PASSWORD 'Secure@123' VALID UNTIL '2026-07-12';
+
+select rolname from pg_roles;
+
+--connection limit
+create table report_app (
+    id SERIAL PRIMARY KEY,
+    status BOOLEAN
+);
+
+--step1:create role
+CREATE ROLE report_role Login PASSWORD 'Secure@33';
+--step 2:Alter connection-limit to prevent from hogging db resources by users or appln
+ALTER ROLE report_role CONNECTION LIMIT 2;
+
+select rolname from pg_roles;
+
+alter role contractor login password 'Secure@123' valid UNTIL '2026-06-12';
+
+select rolname from pg_roles;
+
+--ex2 weather_app_log
+--step1:create role
+create role weather_app_log login password 'Secure*123' valid until '2026-07-12';
+
+--step 2:alter connection_limit
+alter ROLE weather_app_log connection limit 1;
+
+select rolname from pg_roles;
