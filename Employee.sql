@@ -738,3 +738,108 @@ create role weather_app_log login password 'Secure*123' valid until '2026-07-12'
 alter ROLE weather_app_log connection limit 1;
 
 select rolname from pg_roles;
+
+--alter role
+create role immediate_joiner login password 'immediate@77';
+
+alter role immediate_joiner valid until '2026-08-02';
+
+--superuser
+alter role immediate_joiner superuser;
+
+--grant permissions & priviledge to create db
+alter role immediate_joiner CREATEDB;
+--connection limit to limit concurrent transactions and prevent appln/user from hogging db resources
+alter role immediate_joiner CONNECTION LIMIT 2;
+--nosuperuser(not gets an  absolute access to db)
+alter role immediate_joiner nosuperuser;
+
+--nocreatedb:cant create database
+alter role immediate_joiner nocreatedb;
+--update user's password
+alter role immediate_joiner PASSWORD 'secure@99';
+
+--login/nologin:allows users to get login acess to db(login-user,nologib-group)
+alter role immediate_joiner login;
+
+alter role immediate_joiner nologin;
+
+--utc timezone:this allows when every time user(immediate_joiner) logins always logins in UTC timezone
+alter role immediate_joiner set TIMEZONE_HOUR to 'UTC';
+
+--checked using \du immediate_joiner
+
+SELECT rolname from pg_roles;
+
+--Drop role
+create role fired_emp login PASSWORD 'fired@123';
+
+create role new_hired login PASSWORD 'new@123';
+
+alter role fired_emp createdb;
+
+--psql -U fired_emp -W fired_emp; or \du fired_emp
+
+--1)trnasfering asset from fired_emp to new-hired employee
+REASSIGN OWNED BY fired_emp to new_hired;
+--Step2 revoke their specific permisiions(remove lingering priviledges they were granted by fired_emp on other object toreduce dependacy)
+drop owned by fired_emp;
+
+drop ROLE fired_emp;
+
+alter role new_hired createdb;
+
+--ex2 drop
+create role old_cust login PASSWORD 'cust@123';
+
+create role new_cust login PASSWORD 'cust1@123';
+--grant privileged to create db
+alter role old_cust createdb;
+
+--orginal dropping
+--step 1)trasferring asset from old cust to new cust
+REASSIGN OWNED BY old_cust to new_cust;
+--step 2:revoking all privileged given by old_cust to other objects to rmove lingering priviledges & reduced dependacies
+DROP OWNED by new_cust;
+
+drop role old_cust;
+
+alter role new_cust createdb;
+
+--ex3
+create role old login PASSWORD 'old#123';
+
+drop role if exists old;
+
+create role old_firm login PASSWORD 'firm@123';
+
+create role new_firm login PASSWORD 'firmm@123';
+
+alter role old_firm createdb;
+
+--origignal dropping and trasfering and assigning role
+REASSIGN OWNED by old_firm to new_firm;
+
+drop owned by old_firm;
+
+drop role old_firm;
+
+--assign role
+alter role new_firm createdb;
+
+--ex3
+create role free_plan login PASSWORD 'free@121';
+
+create role premium_plan login password 'premium#123';
+
+alter role free_plan createdb;
+
+--reassinig assset
+REASSIGN OWNED by free_plan to premium_plan;
+
+drop OWNED by free_plan;
+--drop role
+drop role free_plan;
+
+--assign new privileged
+alter role premium_plan createdb;
