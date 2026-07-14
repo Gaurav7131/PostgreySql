@@ -1090,3 +1090,44 @@ and the insertion will take place as expected.So,
 check the inserted data use the following command:
 
 SELECT * FROM contacts;
+
+--example2
+create DATABASE apple;
+
+create table contacts (
+    name TEXT PRIMARY KEY,
+    email TEXT UNIQUE,
+    address TEXT
+);
+
+create table forecasts (
+    amount BIGINT,
+    sales NUMERIC,
+    discount BIGINT
+);
+
+create role tim inherit login password 'Cook@123';
+
+create role marketing;
+
+create role planning;
+
+grant all on contacts to marketing;
+
+grant all on forecasts to planning;
+
+grant marketing to tim;
+
+grant marketing to planning;
+
+select * from forecasts;
+
+insert into
+    contacts
+VALUES (
+        'Steeve jobs',
+        'apple@gmial.org',
+        'usa +122139'
+    );
+
+SELECT * from contacts;
