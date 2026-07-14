@@ -881,128 +881,212 @@ VALUES (
 grant insert, update, delete on players to Elon with grant OPTION;
 
 --scneario when i want to agrant access to 50 different table
-grant select on all tables SCHEMA public to Elon;
+grant select on all TABLES IN SCHEMA public to Elon;
 
 alter default PRIVILEGES Elon;
 
 --revoke(undo grant)
 revoke insert on players FROM Elon;
 
-----
-Part 1:Concept
-and Examples (संकल्पना आणि उदाहरणे) In English:In PostgreSQL,
-the
-GRANT statement is a powerful security tool used to assign privileges to a role (user).By default,
-when you create a new table,
-only the owner (
-    or a superuser
-) can view
-or modify its data.To allow other users to interact
+---
+create role musk login PASSWORD 'gpt@342';
+
+CREATE TABLE players1 (
+    player_id INT GENERATED ALWAYS AS IDENTITY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(25) NOT NULL,
+    PRIMARY KEY (player_id)
+);
+
+INSERT INTO
+    players1 (
+        first_name,
+        last_name,
+        email,
+        phone
+    )
+VALUES (
+        'raju',
+        'kumar',
+        'raju.kumar@geeksforgeeks.org',
+        '408-111-2222'
+    );
+
+--if we want to assign multple priiviledges efficiently instead of tedicious we used:ALL tables
+grant select on all TABLES in SCHEMA public to musk;
+
+grant
+select,
+update, delete, insert on all tables in SCHEMA public to musk;
+
+alter role musk createdb;
+
+--alter default privileged :i allows to set privileged that wiill be applied to object created in the future.not ALL only spefici table
+alter default privileges in SCHEMA musk
+grant
+select on TABLES to players1;
+
+--examle 3
+create role tim login PASSWORD 'tim#123';
+
+CREATE TABLE apple (
+    product_id serial PRIMARY key,
+    prod_name VARCHAR(20),
+    price INTEGER,
+    discount INTEGER,
+    launched_date date
+);
+
+INSERT into
+    apple
+VALUES (
+        001,
+        'Iphone 18 pro max',
+        180000,
+        10,
+        '2026-07-30'
+    );
+
+select * from apple;
+
+grant select on apple to tim with grant option;
+
+grant
+select,
+update, DELETE, insert on all tables in schema public to tim;
+
+revoke delete, INSERT, UPDATE on apple from tim;
+--lets check as we revoke privleged from apple schema of role tim:not allows insert
+insert into apple (price) VALUES (002, 150000);
+--granting insert now its allows
+grant insert on apple to tim with grant option;
+
+INSERT into
+    apple
+VALUES (
+        002,
+        'Iphone 18 pro max',
+        180000,
+        10,
+        '2026-07-30'
+    );
+
+revoke delete on apple from tim;
+
+delete from apple where product_id = 001;
+
+grant DELETE on apple to tim;
+--on all tables in schema public
+grant select on all tables in SCHEMA public to tim;
+
+select rolname from pg_roles;
+
+--alter default privileges:insted of using explicit grant everytime use alter default privileges
+create SCHEMA apple;
+
+alter DEFAULT PRIVILEGES in schema public
+grant
+select on tables to tim;
+
+--example 4
+create role jenson superuser;
+
+alter role jenson nosuperuser;
+
+drop role jenson;
+
+create role jenson login PASSWORD 'jenson@123';
+
+create schema nvidia;
+
+CREATE TABLE nvidia (
+    product_id serial PRIMARY key,
+    prod_name VARCHAR(20),
+    price INTEGER,
+    discount INTEGER,
+    launched_date date
+);
+
+grant
+select on all tables in schema public to jenson
 with
-    your database objects (
-        like tables,
-        views,
-        or functions
-    ),
-    you must explicitly
-grant them permission.Syntax:SQL
-GRANT privilege_list | ALL ON table_name TO role_name;
+grant option;
 
-privilege_list:Specific actions you are allowing,
-such as
-SELECT (read), INSERT (
-        add
-    ),
-UPDATE (modify),
-or DELETE (remove).ALL:Grants all available privileges on that object at once.Example Workflow:You create a new role:
-CREATE ROLE anshul LOGIN PASSWORD 'geeks12345';
+grant
+select,
+update, DELETE, insert on all tables in schema public to jenson;
 
-If 'anshul' logs in and tries to run SELECT * FROM players;
+CREATE TABLE nvidia (
+    product_id serial PRIMARY key,
+    prod_name VARCHAR(20),
+    price INTEGER,
+    discount INTEGER,
+    launched_date date
+);
 
-,
-PostgreSQL will block him
-and throw an error:ERROR:permission denied for table players.To fix this,
-you
-grant him read access:SQL
-GRANT
-SELECT ON players TO anshul;
+revoke select on nvidia from tim;
 
-If he also needs to
-add
-or change data,
-you can
-grant multiple privileges at once:SQL
-GRANT INSERT,
-UPDATE,
-DELETE ON players TO anshul;
+alter DEFAULT PRIVILEGES in SCHEMA public
+grant
+SELECT on tables to jenson;
 
-मराठीत (In Marathi):PostgreSQL मध्ये,
-GRANT स्टेटमेंटचा वापर डेटाबेस ऑब्जेक्ट्सवर (जसे की टेबल्स, व्ह्यूज) विशिष्ट अधिकार (privileges) एका विशिष्ट वापरकर्त्याला (role) देण्यासाठी केला जातो.डीफॉल्टनुसार,
-नवीन टेबल तयार केल्यावर फक्त टेबलच्या मालकाला तो डेटा पाहण्याचा किंवा बदलण्याचा अधिकार असतो.इतरांना परवानगी देण्यासाठी
-GRANT कमांड वापरावी लागते.सिंटॅक्स (Syntax):SQL
-GRANT privilege_list | ALL ON table_name TO role_name;
+----------------------------------Role membership----------------------------------------------------
+create DATABASE corp;
 
+--\c corp:switch to db corp
+--create table :contacts
+CREATE TABLE contacts (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(255) NOT NULL
+);
+--create table forcasts
+CREATE TABLE forecasts (
+    year INT,
+    month INT,
+    amount NUMERIC
+);
 
-privilege_list: तुम्ही देत असलेले अधिकार, जसे की SELECT (वाचण्यासाठी), INSERT (डेटा टाकण्यासाठी), UPDATE, किंवा DELETE.
+--create role and assign privileges used inherit to avoid "permision denied" error  either we have to add set role role_name; or alter role rolename
+CREATE ROLE anil INHERIT LOGIN PASSWORD 'securePass1';
+--grant select privilege to anil on table forcasts
+grant select on forcasts to anil;
 
-ALL: त्या ऑब्जेक्टवरील सर्व उपलब्ध अधिकार एकाच वेळी देण्यासाठी वापरतात.
+--used \z to check grant privileged
 
-उदाहरणाचा प्रवाह (Example Workflow):
-१. समजा तुम्ही 'anshul' नावाचा एक नवीन रोल तयार केला.
-२. जर 'anshul' ने players टेबलमधून डेटा वाचण्याचा प्रयत्न केला, तर त्याला "permission denied" असा एरर येईल.
-३. हे सोडवण्यासाठी तुम्ही त्याला डेटा वाचण्याची परवानगी देऊ शकता:
+--creatwe and manage role
+--1)marketing
+create role marketing noinherit;
+--2)planing
+create role planning noinherit;
 
-SQL
-GRANT SELECT ON players TO anshul;
+--Grant all privileges on 'contacts' table to 'marketing':
 
+GRANT ALL ON contacts TO marketing;
 
-४. जर त्याला डेटा बदलण्याची किंवा नवीन डेटा टाकण्याची परवानगी द्यायची असेल, तर:
+grant all on forcasts to planning;
 
-SQL
-GRANT INSERT, UPDATE, DELETE ON players TO anshul;
+--Add 'Anil' as a member of 'marketing':
+GRANT marketing TO anil;
 
+--Add 'planning' as a member of 'marketing':
+GRANT marketing TO planning;
 
-Part 2: Interview Questions & Scenarios (मुलाखतीचे प्रश्न आणि परिस्थितीवर आधारित प्रश्न)
-1. The "Passing the Baton" Question
-English: If I grant a user access to a table, can they grant that same access to someone else?
+--Demonstrating Role Privileges
+--Now, the role Anil can select data from the forecasts table:
 
-Answer: No, not by default. To allow a user to pass their privileges on to others, you must use the WITH GRANT OPTION clause at the end of your command (e.g., GRANT SELECT ON players TO anshul WITH GRANT OPTION;
+SELECT * FROM forecasts;
+--And insert a row into the contacts table:
 
-).
+INSERT INTO
+    contacts (name, phone)
+VALUES ('Raju Kumar', '408-102-3459');
 
-Marathi: जर मी एखाद्या वापरकर्त्याला टेबलचा ऍक्सेस दिला, तर तो स्वतःहून दुसऱ्याला तोच ऍक्सेस देऊ शकतो का?
+--As Anil can insert a row into the 'forecasts' table,
+PostgreSQL will behave as expected
+and the insertion will take place as expected.So,
+check the inserted data use the following command:
 
-उत्तर: नाही, डीफॉल्टनुसार नाही. वापरकर्त्याला त्याचे अधिकार इतरांना देण्याची परवानगी देण्यासाठी, तुम्हाला कमांडच्या शेवटी WITH GRANT OPTION वापरावे लागेल (उदा. GRANT SELECT ON players TO anshul WITH GRANT OPTION;
-
-).
-
-2. Scenario: The New Data Analyst
-English: A new junior data analyst joins your company. They need to generate daily reports from the sales table, but for security reasons, they must be strictly prevented from adding, modifying, or deleting any records. How do you set up their access?
-
-Answer: You would grant them read-only access by providing only the SELECT privilege.
-
-Query: GRANT SELECT ON sales TO junior_analyst;
-
-Marathi (परिस्थिती:नवीन डेटा ॲनालिस्ट):तुमच्या कंपनीत एक नवीन ज्युनियर डेटा ॲनालिस्ट आला आहे.त्याला sales टेबलमधून दररोज रिपोर्ट बनवायचे आहेत,
-परंतु सुरक्षेच्या कारणास्तव तो डेटा बदलू किंवा डिलीट करू शकणार नाही याची काळजी घ्यायची आहे.तुम्ही त्याला कसा ऍक्सेस द्याल ? उत्तर:मी त्यांच्यासाठी फक्त डेटा वाचण्याचा (
-    SELECT
-) अधिकार देईन.Query:
-GRANT
-SELECT ON sales TO junior_analyst;
-
-3. Scenario:Schema - Wide Access English:Your database has 50 different tables in the public schema.The marketing team (role:mktg_team) needs
-SELECT access to all of them.Writing 50 separate
-GRANT statements would be tedious.How can you accomplish this efficiently ? Answer:You can
-grant privileges to all tables within a schema at once using the ALL TABLES IN SCHEMA syntax.Query:
-GRANT
-SELECT ON ALL TABLES IN SCHEMA public TO mktg_team;
-
-
-Marathi (परिस्थिती: संपूर्ण स्कीमाचा ऍक्सेस): मार्केटिंग टीमला public स्कीमामधील सर्व ५० टेबल्स वाचण्याचा ऍक्सेस हवा आहे. ५० वेगवेगळ्या GRANT कमांड्स लिहिणे वेळखाऊ आहे. तुम्ही हे कसे सोडवाल?
-
-उत्तर: मी संपूर्ण स्कीमासाठी एकाच वेळी ऍक्सेस देणारी कमांड वापरेन.
-
-Query: GRANT SELECT ON ALL TABLES IN SCHEMA public TO mktg_team;
-
-Would you like to explore how to take these permissions away using the
-REVOKE statement next ?
+SELECT * FROM contacts;
